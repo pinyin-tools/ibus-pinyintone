@@ -166,12 +166,28 @@ gboolean ibus_rustpinyin_engine_commit_preedit(
         return FALSE;
     }
     
-    // TODO: quick hack, instead of commiting the string typed
-    // by the user, if we have something in the lookup table
-    // we commit instead the first candidate
+    ibus_rustpinyin_engine_commit_string (rustpinyin, rustpinyin->preedit->str);
+    g_string_assign (rustpinyin->preedit, "");
+    rustpinyin->cursor_pos = 0;
+
+    ibus_rustpinyin_engine_update (rustpinyin);
+
+    return TRUE;
+}
+
+/**
+ *
+ */
+gboolean ibus_rustpinyin_engine_commit_candidate(
+    IBusRustPinyinEngine *rustpinyin
+) {
+    if (rustpinyin->preedit->len == 0) {
+        return FALSE;
+    }
+
     IBusText* candidate = ibus_lookup_table_get_candidate(
         rustpinyin->table,
-        0
+        ibus_lookup_table_get_cursor_pos(rustpinyin->table)
     );
     if (candidate != NULL) {
         ibus_engine_commit_text ((IBusEngine *)rustpinyin, candidate);

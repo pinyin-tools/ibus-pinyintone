@@ -33,8 +33,7 @@ gboolean ibus_rustpinyin_engine_process_key_event (
 
     switch (keyval) {
     case IBUS_space:
-        g_string_append (rustpinyin->preedit, " ");
-        return ibus_rustpinyin_engine_commit_preedit (rustpinyin);
+        return ibus_rustpinyin_engine_commit_candidate (rustpinyin);
     case IBUS_Return:
         return ibus_rustpinyin_engine_commit_preedit (rustpinyin);
 

@@ -71,9 +71,23 @@ void ibus_rustpinyin_engine_commit_string(
 );
 void ibus_rustpinyin_engine_update(IBusRustPinyinEngine *rustpinyin);
 
+/**
+ * take the raw string typed by the user and insert it in the
+ * application "as it"
+ */
 gboolean ibus_rustpinyin_engine_commit_preedit(
     IBusRustPinyinEngine *rustpinyin
 );
+
+/**
+ * take the current selected candidate and insert it in the application
+ * if no candidate we insert the raw text
+ */
+gboolean ibus_rustpinyin_engine_commit_candidate(
+    IBusRustPinyinEngine *rustpinyin
+);
+
+
 
 void ibus_rustpinyin_engine_update_lookup_table (
     IBusRustPinyinEngine* rustpinyin
