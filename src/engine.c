@@ -33,7 +33,7 @@ static void    ibus_rustpinyin_engine_destroy(
     IBusRustPinyinEngine *engine
 );
 static gboolean ibus_rustpinyin_engine_process_key_event(
-    BusEngine *engine,
+    IBusEngine *engine,
     guint keyval,
     guint keycode,
     guint modifiers
