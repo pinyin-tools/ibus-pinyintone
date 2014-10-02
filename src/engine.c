@@ -8,7 +8,7 @@ typedef struct _IBusRustPinyinEngine IBusRustPinyinEngine;
 typedef struct _IBusRustPinyinEngineClass IBusRustPinyinEngineClass;
 
 struct _IBusRustPinyinEngine {
-	IBusEngine parent;
+    IBusEngine parent;
 
     /* members */
     GString *preedit;
@@ -18,19 +18,17 @@ struct _IBusRustPinyinEngine {
 };
 
 struct _IBusRustPinyinEngineClass {
-	IBusEngineClass parent;
+    IBusEngineClass parent;
 };
 
 /* functions prototype */
-static void	ibus_rustpinyin_engine_class_init	(IBusRustPinyinEngineClass	*klass);
-static void	ibus_rustpinyin_engine_init		(IBusRustPinyinEngine		*engine);
-static void	ibus_rustpinyin_engine_destroy		(IBusRustPinyinEngine		*engine);
-static gboolean 
-			ibus_rustpinyin_engine_process_key_event
-                                            (IBusEngine             *engine,
-                                             guint               	 keyval,
-                                             guint               	 keycode,
-                                             guint               	 modifiers);
+static void    ibus_rustpinyin_engine_class_init    (IBusRustPinyinEngineClass    *klass);
+static void    ibus_rustpinyin_engine_init        (IBusRustPinyinEngine        *engine);
+static void    ibus_rustpinyin_engine_destroy        (IBusRustPinyinEngine        *engine);
+static gboolean ibus_rustpinyin_engine_process_key_event (BusEngine             *engine,
+                                             guint                    keyval,
+                                             guint                    keycode,
+                                             guint                    modifiers);
 static void ibus_rustpinyin_engine_focus_in    (IBusEngine             *engine);
 static void ibus_rustpinyin_engine_focus_out   (IBusEngine             *engine);
 static void ibus_rustpinyin_engine_reset       (IBusEngine             *engine);
@@ -52,10 +50,10 @@ static void ibus_rustpinyin_property_activate  (IBusEngine             *engine,
                                              const gchar            *prop_name,
                                              gint                    prop_state);
 static void ibus_rustpinyin_engine_property_show
-											(IBusEngine             *engine,
+                                            (IBusEngine             *engine,
                                              const gchar            *prop_name);
 static void ibus_rustpinyin_engine_property_hide
-											(IBusEngine             *engine,
+                                            (IBusEngine             *engine,
                                              const gchar            *prop_name);
 
 static void ibus_rustpinyin_engine_commit_string
@@ -70,10 +68,10 @@ G_DEFINE_TYPE (IBusRustPinyinEngine, ibus_rustpinyin_engine, IBUS_TYPE_ENGINE)
 static void
 ibus_rustpinyin_engine_class_init (IBusRustPinyinEngineClass *klass)
 {
-	IBusObjectClass *ibus_object_class = IBUS_OBJECT_CLASS (klass);
-	IBusEngineClass *engine_class = IBUS_ENGINE_CLASS (klass);
-	
-	ibus_object_class->destroy = (IBusObjectDestroyFunc) ibus_rustpinyin_engine_destroy;
+    IBusObjectClass *ibus_object_class = IBUS_OBJECT_CLASS (klass);
+    IBusEngineClass *engine_class = IBUS_ENGINE_CLASS (klass);
+
+    ibus_object_class->destroy = (IBusObjectDestroyFunc) ibus_rustpinyin_engine_destroy;
 
     engine_class->process_key_event = ibus_rustpinyin_engine_process_key_event;
 }
@@ -105,7 +103,7 @@ ibus_rustpinyin_engine_destroy (IBusRustPinyinEngine *rustpinyin)
         rustpinyin->table = NULL;
     }
 
-	((IBusObjectClass *) ibus_rustpinyin_engine_parent_class)->destroy ((IBusObject *)rustpinyin);
+    ((IBusObjectClass *) ibus_rustpinyin_engine_parent_class)->destroy ((IBusObject *)rustpinyin);
 }
 
 static void
