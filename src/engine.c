@@ -22,52 +22,71 @@ struct _IBusRustPinyinEngineClass {
 };
 
 /* functions prototype */
-static void    ibus_rustpinyin_engine_class_init    (IBusRustPinyinEngineClass    *klass);
-static void    ibus_rustpinyin_engine_init        (IBusRustPinyinEngine        *engine);
-static void    ibus_rustpinyin_engine_destroy        (IBusRustPinyinEngine        *engine);
-static gboolean ibus_rustpinyin_engine_process_key_event (BusEngine             *engine,
-                                             guint                    keyval,
-                                             guint                    keycode,
-                                             guint                    modifiers);
-static void ibus_rustpinyin_engine_focus_in    (IBusEngine             *engine);
-static void ibus_rustpinyin_engine_focus_out   (IBusEngine             *engine);
-static void ibus_rustpinyin_engine_reset       (IBusEngine             *engine);
-static void ibus_rustpinyin_engine_enable      (IBusEngine             *engine);
-static void ibus_rustpinyin_engine_disable     (IBusEngine             *engine);
-static void ibus_engine_set_cursor_location (IBusEngine             *engine,
-                                             gint                    x,
-                                             gint                    y,
-                                             gint                    w,
-                                             gint                    h);
-static void ibus_rustpinyin_engine_set_capabilities
-                                            (IBusEngine             *engine,
-                                             guint                   caps);
-static void ibus_rustpinyin_engine_page_up     (IBusEngine             *engine);
-static void ibus_rustpinyin_engine_page_down   (IBusEngine             *engine);
-static void ibus_rustpinyin_engine_cursor_up   (IBusEngine             *engine);
-static void ibus_rustpinyin_engine_cursor_down (IBusEngine             *engine);
-static void ibus_rustpinyin_property_activate  (IBusEngine             *engine,
-                                             const gchar            *prop_name,
-                                             gint                    prop_state);
-static void ibus_rustpinyin_engine_property_show
-                                            (IBusEngine             *engine,
-                                             const gchar            *prop_name);
-static void ibus_rustpinyin_engine_property_hide
-                                            (IBusEngine             *engine,
-                                             const gchar            *prop_name);
+static void ibus_rustpinyin_engine_class_init(
+    IBusRustPinyinEngineClass *klass
+);
 
-static void ibus_rustpinyin_engine_commit_string
-                                            (IBusRustPinyinEngine      *rustpinyin,
-                                             const gchar            *string);
-static void ibus_rustpinyin_engine_update      (IBusRustPinyinEngine      *rustpinyin);
+static void    ibus_rustpinyin_engine_init(
+    IBusRustPinyinEngine *engine
+);
+static void    ibus_rustpinyin_engine_destroy(
+    IBusRustPinyinEngine *engine
+);
+static gboolean ibus_rustpinyin_engine_process_key_event(
+    BusEngine *engine,
+    guint keyval,
+    guint keycode,
+    guint modifiers
+);
+static void ibus_rustpinyin_engine_focus_in  (IBusEngine *engine);
+static void ibus_rustpinyin_engine_focus_out (IBusEngine *engine);
+static void ibus_rustpinyin_engine_reset     (IBusEngine *engine);
+static void ibus_rustpinyin_engine_enable    (IBusEngine *engine);
+static void ibus_rustpinyin_engine_disable   (IBusEngine *engine);
+static void ibus_engine_set_cursor_location(
+    IBusEngine *engine,
+    gint x,
+    gint y,
+    gint w,
+    gint h
+);
+static void ibus_rustpinyin_engine_set_capabilities(
+    IBusEngine *engine,
+    guint caps
+);
+static void ibus_rustpinyin_engine_page_up     (IBusEngine  *engine);
+static void ibus_rustpinyin_engine_page_down   (IBusEngine  *engine);
+static void ibus_rustpinyin_engine_cursor_up   (IBusEngine  *engine);
+static void ibus_rustpinyin_engine_cursor_down (IBusEngine  *engine);
+static void ibus_rustpinyin_property_activate(
+    IBusEngine* engine,
+    const gchar* prop_name,
+    gint prop_state
+);
+static void ibus_rustpinyin_engine_property_show(
+    IBusEngine* engine,
+    const gchar* prop_name
+);
+static void ibus_rustpinyin_engine_property_hide(
+    IBusEngine* engine,
+    const gchar* prop_name
+);
+
+static void ibus_rustpinyin_engine_commit_string(
+    IBusRustPinyinEngine* rustpinyin,
+    const gchar* string
+);
+static void ibus_rustpinyin_engine_update(IBusRustPinyinEngine *rustpinyin);
 
 static void *db = NULL;
 
 G_DEFINE_TYPE (IBusRustPinyinEngine, ibus_rustpinyin_engine, IBUS_TYPE_ENGINE)
 
-static void
-ibus_rustpinyin_engine_class_init (IBusRustPinyinEngineClass *klass)
-{
+/**
+ *
+ */
+static void ibus_rustpinyin_engine_class_init (IBusRustPinyinEngineClass *klass) {
+
     IBusObjectClass *ibus_object_class = IBUS_OBJECT_CLASS (klass);
     IBusEngineClass *engine_class = IBUS_ENGINE_CLASS (klass);
 
@@ -76,9 +95,11 @@ ibus_rustpinyin_engine_class_init (IBusRustPinyinEngineClass *klass)
     engine_class->process_key_event = ibus_rustpinyin_engine_process_key_event;
 }
 
-static void
-ibus_rustpinyin_engine_init (IBusRustPinyinEngine *rustpinyin)
-{
+/**
+ *
+ */
+static void ibus_rustpinyin_engine_init (IBusRustPinyinEngine *rustpinyin) {
+
     if (db == NULL) {
         db =  db_new(PKGDATADIR"/data/filtered_db.csv");
     }
@@ -90,8 +111,10 @@ ibus_rustpinyin_engine_init (IBusRustPinyinEngine *rustpinyin)
     g_object_ref_sink (rustpinyin->table);
 }
 
-static void
-ibus_rustpinyin_engine_destroy (IBusRustPinyinEngine *rustpinyin)
+/**
+ *
+ */
+static void ibus_rustpinyin_engine_destroy (IBusRustPinyinEngine *rustpinyin)
 {
     if (rustpinyin->preedit) {
         g_string_free (rustpinyin->preedit, TRUE);
@@ -103,12 +126,18 @@ ibus_rustpinyin_engine_destroy (IBusRustPinyinEngine *rustpinyin)
         rustpinyin->table = NULL;
     }
 
-    ((IBusObjectClass *) ibus_rustpinyin_engine_parent_class)->destroy ((IBusObject *)rustpinyin);
+    ((IBusObjectClass *) ibus_rustpinyin_engine_parent_class)->destroy(
+        (IBusObject *)rustpinyin
+    );
 }
 
-static void
-ibus_rustpinyin_engine_update_lookup_table (IBusRustPinyinEngine *rustpinyin)
-{
+/**
+ *
+ */
+static void ibus_rustpinyin_engine_update_lookup_table (
+    IBusRustPinyinEngine* rustpinyin
+) {
+
     gboolean retval;
 
     if (rustpinyin->preedit->len == 0) {
@@ -150,9 +179,12 @@ ibus_rustpinyin_engine_update_lookup_table (IBusRustPinyinEngine *rustpinyin)
     }
 }
 
-static void
-ibus_rustpinyin_engine_update_preedit (IBusRustPinyinEngine *rustpinyin)
-{
+/**
+ *
+ */
+static void ibus_rustpinyin_engine_update_preedit (
+    IBusRustPinyinEngine *rustpinyin
+) {
     IBusText *text;
     gint retval;
 
@@ -176,19 +208,25 @@ ibus_rustpinyin_engine_update_preedit (IBusRustPinyinEngine *rustpinyin)
     //    }
     //}
     
-    ibus_engine_update_preedit_text ((IBusEngine *)rustpinyin,
-                                     text,
-                                     rustpinyin->cursor_pos,
-                                     TRUE);
+    ibus_engine_update_preedit_text (
+        (IBusEngine*) rustpinyin,
+        text,
+        rustpinyin->cursor_pos,
+        TRUE
+    );
 
 }
 
 /* commit preedit to client and update preedit */
-static gboolean
-ibus_rustpinyin_engine_commit_preedit (IBusRustPinyinEngine *rustpinyin)
-{
-    if (rustpinyin->preedit->len == 0)
+/**
+ *
+ */
+static gboolean ibus_rustpinyin_engine_commit_preedit(
+    IBusRustPinyinEngine *rustpinyin
+) {
+    if (rustpinyin->preedit->len == 0) {
         return FALSE;
+    }
     
     // TODO: quick hack, instead of commiting the string typed
     // by the user, if we have something in the lookup table
@@ -202,6 +240,7 @@ ibus_rustpinyin_engine_commit_preedit (IBusRustPinyinEngine *rustpinyin)
     } else {
         ibus_rustpinyin_engine_commit_string (rustpinyin, rustpinyin->preedit->str);
     }
+
     g_string_assign (rustpinyin->preedit, "");
     rustpinyin->cursor_pos = 0;
 
@@ -210,32 +249,40 @@ ibus_rustpinyin_engine_commit_preedit (IBusRustPinyinEngine *rustpinyin)
     return TRUE;
 }
 
-
-static void
-ibus_rustpinyin_engine_commit_string (IBusRustPinyinEngine *rustpinyin,
-                                   const gchar       *string)
-{
+/**
+ *
+ */
+static void ibus_rustpinyin_engine_commit_string (
+    IBusRustPinyinEngine* rustpinyin,
+    const gchar* string
+) {
     IBusText *text;
     text = ibus_text_new_from_static_string (string);
     ibus_engine_commit_text ((IBusEngine *)rustpinyin, text);
 }
 
-static void
-ibus_rustpinyin_engine_update (IBusRustPinyinEngine *rustpinyin)
-{
+/**
+ *
+ */
+static void ibus_rustpinyin_engine_update (
+    IBusRustPinyinEngine *rustpinyin
+) {
     ibus_rustpinyin_engine_update_preedit (rustpinyin);
-    ibus_engine_hide_lookup_table ((IBusEngine *)rustpinyin);
+    ibus_engine_hide_lookup_table ((IBusEngine*) rustpinyin);
 }
 
 #define is_alpha(c) (((c) >= IBUS_a && (c) <= IBUS_z) || ((c) >= IBUS_A && (c) <= IBUS_Z))
 #define is_tone(c) ((c) >= IBUS_1 && (c) <= IBUS_5)
 
-static gboolean 
-ibus_rustpinyin_engine_process_key_event (IBusEngine *engine,
-                                       guint       keyval,
-                                       guint       keycode,
-                                       guint       modifiers)
-{
+/**
+ *
+ */
+static gboolean ibus_rustpinyin_engine_process_key_event (
+    IBusEngine* engine,
+    guint keyval,
+    guint keycode,
+    guint modifiers
+) {
     IBusText *text;
     IBusRustPinyinEngine *rustpinyin = (IBusRustPinyinEngine *)engine;
 
