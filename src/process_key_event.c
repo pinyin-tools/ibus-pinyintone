@@ -66,23 +66,28 @@ gboolean ibus_rustpinyin_engine_process_key_event (
         return TRUE;
     
     case IBUS_Up:
-        if (rustpinyin->preedit->len == 0)
+        if (rustpinyin->preedit->len == 0) {
             return FALSE;
-        if (rustpinyin->cursor_pos != 0) {
-            rustpinyin->cursor_pos = 0;
-            ibus_rustpinyin_engine_update (rustpinyin);
         }
+
+        ibus_lookup_table_cursor_up(rustpinyin->table);
+        ibus_engine_update_lookup_table (
+            (IBusEngine*) rustpinyin,
+            rustpinyin->table,
+            TRUE
+        );
         return TRUE;
 
     case IBUS_Down:
-        if (rustpinyin->preedit->len == 0)
+        if (rustpinyin->preedit->len == 0) {
             return FALSE;
-        
-        if (rustpinyin->cursor_pos != rustpinyin->preedit->len) {
-            rustpinyin->cursor_pos = rustpinyin->preedit->len;
-            ibus_rustpinyin_engine_update (rustpinyin);
         }
-        
+        ibus_lookup_table_cursor_down(rustpinyin->table);
+        ibus_engine_update_lookup_table (
+            (IBusEngine*) rustpinyin,
+            rustpinyin->table,
+            TRUE
+        );
         return TRUE;
     
     case IBUS_BackSpace:
