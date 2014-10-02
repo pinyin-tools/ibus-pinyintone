@@ -5,6 +5,16 @@
 #define is_tone(c) ((c) >= IBUS_1 && (c) <= IBUS_5)
 
 /**
+ * process punctuation to convert it into chinese punctuation
+ */
+static gboolean ibus_rustpinyin_engine_process_if_punctuation(
+    IBusEngine* engine,
+    guint keyval,
+    guint keycode,
+    guint modifiers
+);
+
+/**
  *
  */
 gboolean ibus_rustpinyin_engine_process_key_event (
@@ -44,7 +54,7 @@ gboolean ibus_rustpinyin_engine_process_key_event (
         g_string_assign (rustpinyin->preedit, "");
         rustpinyin->cursor_pos = 0;
         ibus_rustpinyin_engine_update (rustpinyin);
-        return TRUE;        
+        return TRUE;
 
     case IBUS_Left:
         if (rustpinyin->preedit->len == 0)
@@ -63,7 +73,7 @@ gboolean ibus_rustpinyin_engine_process_key_event (
             ibus_rustpinyin_engine_update (rustpinyin);
         }
         return TRUE;
-    
+
     case IBUS_Up:
         if (rustpinyin->preedit->len == 0) {
             return FALSE;
@@ -88,7 +98,7 @@ gboolean ibus_rustpinyin_engine_process_key_event (
             TRUE
         );
         return TRUE;
-    
+
     case IBUS_BackSpace:
         if (rustpinyin->preedit->len == 0)
             return FALSE;
@@ -99,7 +109,7 @@ gboolean ibus_rustpinyin_engine_process_key_event (
             ibus_rustpinyin_engine_update_lookup_table (rustpinyin);
         }
         return TRUE;
-    
+
     case IBUS_Delete:
         if (rustpinyin->preedit->len == 0)
             return FALSE;
@@ -111,16 +121,106 @@ gboolean ibus_rustpinyin_engine_process_key_event (
     }
 
     if (is_alpha (keyval) || is_tone(keyval)) {
-        g_string_insert_c (rustpinyin->preedit,
-                           rustpinyin->cursor_pos,
-                           keyval);
+        g_string_insert_c (
+            rustpinyin->preedit,
+            rustpinyin->cursor_pos,
+            keyval
+        );
 
         rustpinyin->cursor_pos ++;
         ibus_rustpinyin_engine_update_preedit (rustpinyin);
         ibus_rustpinyin_engine_update_lookup_table (rustpinyin);
-        
+
         return TRUE;
     }
 
+    return ibus_rustpinyin_engine_process_if_punctuation(
+        engine,
+        keyval,
+        keycode,
+        modifiers
+    );
+
+
+    // if nothing below return FALSE
+}
+
+// just so that the big switch case can be put one case by line
+// which make it easier to understand
+#define PINYIN_COMMIT(X) \
+    (ibus_rustpinyin_engine_commit_string(rustpinyin,(X)))
+
+/**
+ *
+ */
+gboolean ibus_rustpinyin_engine_process_if_punctuation(
+    IBusEngine* engine,
+    guint keyval,
+    guint keycode,
+    guint modifiers
+) {
+    IBusRustPinyinEngine *rustpinyin = (IBusRustPinyinEngine *)engine;
+
+    // behaviour copied from  ibus-pinyin
+    // if the user has already started to entered some texts
+    // the user will not be able to input punctuation, this to avoid
+    // the punctuation to be commited before the text entered
+    if (rustpinyin->preedit->len != 0) {
+        return FALSE;
+    }
+
+    // switch case shamelessy copy/pasted from IBus-pinyin
+    // source code (GPL V2 code normally)
+    switch (keyval) {
+    case '`': PINYIN_COMMIT("·"); return TRUE;
+    case '~': PINYIN_COMMIT("～"); return TRUE;
+    case '!': PINYIN_COMMIT("！"); return TRUE;
+    // case '@':
+    // case '#':
+    case '$': PINYIN_COMMIT("￥"); return TRUE;
+    // case '%':
+    case '^': PINYIN_COMMIT("……"); return TRUE;
+    // case '&':
+    // case '*':
+    case '(': PINYIN_COMMIT("（"); return TRUE;
+    case ')': PINYIN_COMMIT("）"); return TRUE;
+    // case '-':
+    case '_': PINYIN_COMMIT("——"); return TRUE;
+    // case '=':
+    // case '+':
+    case '[': PINYIN_COMMIT("【"); return TRUE;
+    case ']': PINYIN_COMMIT("】"); return TRUE;
+    case '{': PINYIN_COMMIT("『"); return TRUE;
+    case '}': PINYIN_COMMIT("』"); return TRUE;
+    case '\\': PINYIN_COMMIT("、"); return TRUE;
+    case ';': PINYIN_COMMIT("；"); return TRUE;
+    case ':': PINYIN_COMMIT("："); return TRUE;
+    case ',': PINYIN_COMMIT("，"); return TRUE;
+    case '<': PINYIN_COMMIT("《"); return TRUE;
+    case '>': PINYIN_COMMIT("》"); return TRUE;
+    case '?': PINYIN_COMMIT("？"); return TRUE;
+    // case '|':
+    //TODO handle these case, need to add a flag in rustpinyin
+    //case '\'':
+    //    PINYIN_COMMIT(m_quote ? "‘" : "’");
+    //    m_quote = !m_quote;
+    //    return TRUE;
+    //case '"':
+    //    PINYIN_COMMIT(m_double_quote ? "“" : "”");
+    //    m_double_quote = !m_double_quote;
+    //    return TRUE;
+    case '.':
+        //TODO: handle this case, need to add a prev_committed_char or
+        // related in rustpinyin
+        //if (m_prev_committed_char >= '0' && m_prev_committed_char <= '9')
+        //    PINYIN_COMMIT(keyval);
+        //else
+            PINYIN_COMMIT("。");
+        return TRUE;
+    // case '/':
+    }
     return FALSE;
+
+
+
 }

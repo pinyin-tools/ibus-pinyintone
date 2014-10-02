@@ -189,10 +189,12 @@ gboolean ibus_rustpinyin_engine_commit_candidate(
         rustpinyin->table,
         ibus_lookup_table_get_cursor_pos(rustpinyin->table)
     );
+
     if (candidate != NULL) {
         ibus_engine_commit_text ((IBusEngine *)rustpinyin, candidate);
     } else {
         ibus_rustpinyin_engine_commit_string (rustpinyin, rustpinyin->preedit->str);
+        ibus_rustpinyin_engine_commit_string (rustpinyin, " ");
     }
 
     g_string_assign (rustpinyin->preedit, "");
