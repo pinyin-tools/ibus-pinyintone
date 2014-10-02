@@ -23,6 +23,8 @@ libexec_PROGRAMS = ibus-engine-rustpinyin
 
 ibus_engine_rustpinyin_SOURCES = \
 	main.c \
+	process_key_event.c \
+	process_key_event.h \
 	engine.c \
 	engine.h \
 	rustpiniyn.h \

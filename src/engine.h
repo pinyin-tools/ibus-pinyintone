@@ -30,12 +30,7 @@ struct _IBusRustPinyinEngineClass {
 
 static void ibus_rustpinyin_engine_init(IBusRustPinyinEngine *engine);
 void ibus_rustpinyin_engine_destroy(IBusRustPinyinEngine *engine);
-gboolean ibus_rustpinyin_engine_process_key_event(
-    IBusEngine *engine,
-    guint keyval,
-    guint keycode,
-    guint modifiers
-);
+
 void ibus_rustpinyin_engine_focus_in  (IBusEngine *engine);
 void ibus_rustpinyin_engine_focus_out (IBusEngine *engine);
 void ibus_rustpinyin_engine_reset     (IBusEngine *engine);
@@ -76,6 +71,12 @@ void ibus_rustpinyin_engine_commit_string(
 );
 void ibus_rustpinyin_engine_update(IBusRustPinyinEngine *rustpinyin);
 
+gboolean ibus_rustpinyin_engine_commit_preedit(
+    IBusRustPinyinEngine *rustpinyin
+);
 
+void ibus_rustpinyin_engine_update_lookup_table (
+    IBusRustPinyinEngine* rustpinyin
+);
 
 #endif
