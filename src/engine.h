@@ -17,6 +17,9 @@ struct _IBusRustPinyinEngine {
 
     /* members */
     GString *preedit;
+    //mirror of preedit, only used for display purpose
+    //in the interface, with modification (space, '|' cursor etc.)
+    GString *preedit_display;
     gint cursor_pos;
 
     IBusLookupTable *table;

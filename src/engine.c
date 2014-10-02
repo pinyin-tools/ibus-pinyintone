@@ -39,6 +39,7 @@ void ibus_rustpinyin_engine_init (IBusRustPinyinEngine *rustpinyin) {
     }
 
     rustpinyin->preedit = g_string_new ("");
+    rustpinyin->preedit_display = g_string_new ("");
     rustpinyin->cursor_pos = 0;
 
     rustpinyin->table = ibus_lookup_table_new (9, 0, TRUE, TRUE);
@@ -53,6 +54,12 @@ void ibus_rustpinyin_engine_destroy (IBusRustPinyinEngine *rustpinyin)
     if (rustpinyin->preedit) {
         g_string_free (rustpinyin->preedit, TRUE);
         rustpinyin->preedit = NULL;
+    }
+
+    if (rustpinyin->preedit_display) {
+        g_string_free (rustpinyin->preedit_display, TRUE);
+        rustpinyin->preedit_display = NULL;
+
     }
 
     if (rustpinyin->table) {
@@ -126,7 +133,26 @@ void ibus_rustpinyin_engine_update_preedit (
     IBusText *text;
     gint retval;
 
-    text = ibus_text_new_from_static_string (rustpinyin->preedit->str);
+
+    //TODO: it should be possible to have something to not
+    //free/new a string everytime we update display_preedit
+    g_string_free(rustpinyin->preedit_display, TRUE);
+    rustpinyin->preedit_display = g_string_new(rustpinyin->preedit->str);
+
+    //except for empty preedit, we had a visual cursor
+    //in the preedit string
+    if (rustpinyin->preedit->len != 0) {
+        g_string_insert_c(
+            rustpinyin->preedit_display,
+            rustpinyin->cursor_pos,
+            '|'
+        );
+    }
+
+    text = ibus_text_new_from_static_string (
+        rustpinyin->preedit_display->str
+    );
+
     text->attrs = ibus_attr_list_new ();
     
     ibus_attr_list_append (
