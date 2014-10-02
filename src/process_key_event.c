@@ -95,7 +95,7 @@ gboolean ibus_rustpinyin_engine_process_key_event (
         if (rustpinyin->cursor_pos > 0) {
             rustpinyin->cursor_pos --;
             g_string_erase (rustpinyin->preedit, rustpinyin->cursor_pos, 1);
-            ibus_rustpinyin_engine_update (rustpinyin);
+            ibus_rustpinyin_engine_update_preedit(rustpinyin);
             ibus_rustpinyin_engine_update_lookup_table (rustpinyin);
         }
         return TRUE;
@@ -116,7 +116,7 @@ gboolean ibus_rustpinyin_engine_process_key_event (
                            keyval);
 
         rustpinyin->cursor_pos ++;
-        ibus_rustpinyin_engine_update (rustpinyin);
+        ibus_rustpinyin_engine_update_preedit (rustpinyin);
         ibus_rustpinyin_engine_update_lookup_table (rustpinyin);
         
         return TRUE;
