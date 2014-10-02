@@ -34,3 +34,6 @@ stamp-h1
 py-compile
 ibus-tmpl*.tar.*
 ibus-tmpl.spec
+src/rustpinyin.xml
+src/rustpinyin.xml.in
+src/ibus-engine-rustpinyin
