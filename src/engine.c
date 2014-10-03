@@ -1,7 +1,7 @@
 /* vim:set et sts=4: */
 
 #include <stdio.h>
-#include "rustpinyin.h"
+#include <pinyinengine.h>
 #include "engine.h"
 #include "process_key_event.h"
 static void *db = NULL;
@@ -93,7 +93,7 @@ void ibus_rustpinyin_engine_update_lookup_table (
         db,
         rustpinyin->preedit->str
     );
-    unsigned n_sug = suggestions_size(suggestions);
+    unsigned n_sug = vec_string_size(suggestions);
 
     if (suggestions == NULL || n_sug == 0) {
         ibus_engine_hide_lookup_table ((IBusEngine *) rustpinyin);
@@ -101,7 +101,7 @@ void ibus_rustpinyin_engine_update_lookup_table (
     }
 
     for (unsigned i = 0; i < n_sug; i++) {
-        const gchar* value = suggestions_value_get(
+        const gchar* value = vec_string_value_get(
             suggestions,
             i
         );
@@ -110,7 +110,7 @@ void ibus_rustpinyin_engine_update_lookup_table (
             ibus_text_new_from_string (value)
         );
 
-        suggestions_value_free(value);
+        vec_string_value_free(value);
     }
 
     ibus_engine_update_lookup_table (
@@ -120,7 +120,7 @@ void ibus_rustpinyin_engine_update_lookup_table (
     );
 
     if (suggestions != NULL) {
-        suggestions_free(suggestions);
+        vec_string_free(suggestions);
     }
 }
 
