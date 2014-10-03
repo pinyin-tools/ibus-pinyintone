@@ -20,7 +20,7 @@ Mostly for learners, as a learner myself, I found that by typing pinyin
 without tones, it was very hard for me when talking orally to remember
 which tones to put to words
 
-##Origin note
+##Original note
 
 This is a template engine for IME developers. You could start your IME engine
 from it.
@@ -30,3 +30,36 @@ new engines under open source license too, but we do not force it. We allow
 developers start your work from ibus-tmpl and swith to other license.
 
 src - engine in c language
+
+## build and install ( Debian 7, should work with Ubuntu )
+
+### Required packages :
+  * autopoint
+  * libibus-1.0-dev
+  * libtool
+  * autotools-dev
+  * automake
+
+also you will need a recent rust compiler and cargo (that comes with Rust)
+
+### Compile libpinyinengine :
+  * in the root folder of the libpinyinengine, execute `cargo build`
+  * copy/paste the generated library from `target/libpinyinengine.so` to `/usr/local/lib/libpinyinengine.so`
+  * execute `sudo ldconfig` to update the linker
+
+In project root folder :
+```
+./autogen.sh
+./configure --prefix=/usr
+make
+sudo make install
+```
+
+Note that `--prefix=/usr`  will install the project in `/usr` folder instead of typical `/usr/local`, otherwise ibus will not be able to find this engine.
+
+## tests
+
+- copy/paste `data/filtered_db.csv` file from the libpinyinengine directory to `/usr/share/ibus-tmpl/data`
+- restart ibus deamon
+
+The new method is normally available in the ibus input methods lists. 
