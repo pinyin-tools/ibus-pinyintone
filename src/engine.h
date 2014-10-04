@@ -17,10 +17,19 @@ struct _IBusRustPinyinEngine {
 
     /* members */
     GString *preedit;
-    //mirror of preedit, only used for display purpose
-    //in the interface, with modification (space, '|' cursor etc.)
-    GString *preedit_display;
     gint cursor_pos;
+
+    // keep track of how many tokens have been already used in case of
+    // a commit in several step (e.g the user has entered "mei3guo2ren2"
+    // which is 3 tokens but have only chosen the chinese character for
+    // "mei3guo2", there's two tokens consumed
+    //guint consumed_tokens;
+    //
+    //
+    GString* precommit;
+    // keep track of the consumed characters to be able to
+    // put them back if needed (e.g if we press backspace)
+    GString* consumed;
 
     IBusLookupTable *table;
 };
@@ -72,7 +81,8 @@ void ibus_rustpinyin_engine_commit_string(
     IBusRustPinyinEngine* rustpinyin,
     const gchar* string
 );
-void ibus_rustpinyin_engine_update(IBusRustPinyinEngine *rustpinyin);
+
+void ibus_rustpinyin_engine_clear(IBusRustPinyinEngine *rustpinyin);
 
 /**
  * take the raw string typed by the user and insert it in the
@@ -82,18 +92,28 @@ gboolean ibus_rustpinyin_engine_commit_preedit(
     IBusRustPinyinEngine *rustpinyin
 );
 
-/**
- * take the current selected candidate and insert it in the application
- * if no candidate we insert the raw text
- */
-gboolean ibus_rustpinyin_engine_commit_candidate(
+void ibus_rustpinyin_engine_update_preedit(
     IBusRustPinyinEngine *rustpinyin
 );
 
 
 
+/**
+ * take the current selected candidate and insert it in the application
+ * if no candidate we insert the raw text
+ */
+
+gboolean ibus_rustpinyin_engine_select_candidate(
+    IBusRustPinyinEngine *rustpinyin
+);
+
+
 void ibus_rustpinyin_engine_update_lookup_table (
     IBusRustPinyinEngine* rustpinyin
+);
+
+void ibus_rustpinyin_engine_update_auxilliary(
+    IBusRustPinyinEngine *rustpinyin
 );
 
 #endif
