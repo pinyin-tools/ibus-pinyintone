@@ -1,6 +1,7 @@
 /* vim:set et sts=4: */
 
 #include <stdio.h>
+#include <string.h>
 #include <pinyinengine.h>
 #include "engine.h"
 #include "process_key_event.h"
@@ -38,8 +39,9 @@ void ibus_rustpinyin_engine_init (IBusRustPinyinEngine *rustpinyin) {
         db =  db_new(PKGDATADIR"/data/filtered_db.csv");
     }
 
+    rustpinyin->precommit = g_string_new ("");
     rustpinyin->preedit = g_string_new ("");
-    rustpinyin->preedit_display = g_string_new ("");
+    rustpinyin->consumed = g_string_new ("");
     rustpinyin->cursor_pos = 0;
 
     rustpinyin->table = ibus_lookup_table_new (5, 0, TRUE, TRUE);
@@ -56,15 +58,19 @@ void ibus_rustpinyin_engine_destroy (IBusRustPinyinEngine *rustpinyin)
         rustpinyin->preedit = NULL;
     }
 
-    if (rustpinyin->preedit_display) {
-        g_string_free (rustpinyin->preedit_display, TRUE);
-        rustpinyin->preedit_display = NULL;
-
+    if (rustpinyin->precommit) {
+        g_string_free (rustpinyin->precommit, TRUE);
+        rustpinyin->precommit = NULL;
     }
 
     if (rustpinyin->table) {
         g_object_unref (rustpinyin->table);
         rustpinyin->table = NULL;
+    }
+
+    if (rustpinyin->consumed) {
+        g_string_free (rustpinyin->consumed, TRUE);
+        rustpinyin->consumed = NULL;
     }
 
     ((IBusObjectClass *) ibus_rustpinyin_engine_parent_class)->destroy(
@@ -127,30 +133,46 @@ void ibus_rustpinyin_engine_update_lookup_table (
 /**
  *
  */
+void ibus_rustpinyin_engine_update_auxilliary(
+    IBusRustPinyinEngine *rustpinyin
+) {
+    IBusText *auxtext;
+    auxtext = ibus_text_new_from_static_string (
+        rustpinyin->precommit->str
+    );
+
+    ibus_engine_update_auxiliary_text(
+        (IBusEngine*) rustpinyin,
+        auxtext,
+        TRUE
+    );
+
+}
+
+/**
+ *
+ */
 void ibus_rustpinyin_engine_update_preedit (
     IBusRustPinyinEngine *rustpinyin
 ) {
     IBusText *text;
     gint retval;
 
-
-    //TODO: it should be possible to have something to not
-    //free/new a string everytime we update display_preedit
-    g_string_free(rustpinyin->preedit_display, TRUE);
-    rustpinyin->preedit_display = g_string_new(rustpinyin->preedit->str);
-
+    //mirror of preedit, only used for display purpose
+    //in the interface, with modification (space, '|' cursor etc.)
+    GString* preedit_display = g_string_new(rustpinyin->preedit->str);
     //except for empty preedit, we had a visual cursor
     //in the preedit string
     if (rustpinyin->preedit->len != 0) {
         g_string_insert_c(
-            rustpinyin->preedit_display,
+            preedit_display,
             rustpinyin->cursor_pos,
             '|'
         );
     }
 
     text = ibus_text_new_from_static_string (
-        rustpinyin->preedit_display->str
+        preedit_display->str
     );
 
     text->attrs = ibus_attr_list_new ();
@@ -163,14 +185,6 @@ void ibus_rustpinyin_engine_update_preedit (
             rustpinyin->preedit->len
         )
     );
-    //TODO : need to check what this is doing
-    //if (rustpinyin->preedit->len > 0) {
-    //    retval = rustpinyin_dict_check (dict, rustpinyin->preedit->str, rustpinyin->preedit->len);
-    //    if (retval != 0) {
-    //        ibus_attr_list_append (text->attrs,
-    //                           ibus_attr_foreground_new (0xff0000, 0, rustpinyin->preedit->len));
-    //    }
-    //}
     
     ibus_engine_update_preedit_text (
         (IBusEngine*) rustpinyin,
@@ -191,12 +205,13 @@ gboolean ibus_rustpinyin_engine_commit_preedit(
     if (rustpinyin->preedit->len == 0) {
         return FALSE;
     }
-    
-    ibus_rustpinyin_engine_commit_string (rustpinyin, rustpinyin->preedit->str);
-    g_string_assign (rustpinyin->preedit, "");
-    rustpinyin->cursor_pos = 0;
+    ibus_rustpinyin_engine_commit_string (
+        rustpinyin,
+        rustpinyin->preedit->str
+    );
 
-    ibus_rustpinyin_engine_update (rustpinyin);
+
+    ibus_rustpinyin_engine_clear (rustpinyin);
 
     return TRUE;
 }
@@ -204,7 +219,7 @@ gboolean ibus_rustpinyin_engine_commit_preedit(
 /**
  *
  */
-gboolean ibus_rustpinyin_engine_commit_candidate(
+gboolean ibus_rustpinyin_engine_select_candidate(
     IBusRustPinyinEngine *rustpinyin
 ) {
     if (rustpinyin->preedit->len == 0) {
@@ -216,18 +231,78 @@ gboolean ibus_rustpinyin_engine_commit_candidate(
         ibus_lookup_table_get_cursor_pos(rustpinyin->table)
     );
 
-    if (candidate != NULL) {
-        ibus_engine_commit_text ((IBusEngine *)rustpinyin, candidate);
-    } else {
-        ibus_rustpinyin_engine_commit_string (rustpinyin, rustpinyin->preedit->str);
+
+    // if no candidate, we commit the preedit string and insert a space
+    // useful if you want to type for example an english word here and
+    // there without needing to switch the IME
+    // (Hack as right now this function is only called when pressing
+    // enter)
+    if (candidate == NULL) {
+        ibus_rustpinyin_engine_commit_string (
+            rustpinyin,
+            rustpinyin->preedit->str
+        );
         ibus_rustpinyin_engine_commit_string (rustpinyin, " ");
+        ibus_rustpinyin_engine_clear (rustpinyin);
+        return TRUE;
     }
 
-    g_string_assign (rustpinyin->preedit, "");
-    rustpinyin->cursor_pos = 0;
 
-    ibus_rustpinyin_engine_update (rustpinyin);
+    guint candidate_size = ibus_text_get_length(candidate);
 
+    g_string_append(
+        rustpinyin->precommit,
+        ibus_text_get_text(candidate)
+    );
+
+    void* tokens = string_to_tokens_as_strings_c(
+        rustpinyin->preedit->str
+    );
+    guint tokens_size = vec_string_size(tokens);
+
+    // check how many characters have been already consumed
+    guint consumed_chars = 0;
+    for (guint i = 0; i < candidate_size; i++) {
+        const gchar* value = vec_string_value_get(
+            tokens,
+            i
+        );
+        consumed_chars += strlen(value);
+        // we add the pinyin of the candidate
+        // to the string of consumed characters
+        g_string_append(
+            rustpinyin->consumed,
+            value
+        );
+         
+        vec_string_value_free(value);
+    }
+    vec_string_free(tokens);
+
+    // we removed the consumed characters
+    g_string_erase(
+        rustpinyin->preedit,
+        0,
+        consumed_chars
+    );
+    // we update the cursor_pos so that for the user
+    // it stays at the same place
+    rustpinyin->cursor_pos -= consumed_chars;
+
+    // if we have consumed all the tokens, then we commit the string
+    if (candidate_size == tokens_size) {
+
+        ibus_rustpinyin_engine_commit_string(
+            rustpinyin,
+            rustpinyin->precommit->str
+        );
+        ibus_rustpinyin_engine_clear (rustpinyin);
+        return TRUE;
+    }
+
+    ibus_rustpinyin_engine_update_auxilliary(rustpinyin);
+    ibus_rustpinyin_engine_update_preedit (rustpinyin);
+    ibus_rustpinyin_engine_update_lookup_table (rustpinyin);
     return TRUE;
 }
 
@@ -246,9 +321,17 @@ void ibus_rustpinyin_engine_commit_string (
 /**
  *
  */
-void ibus_rustpinyin_engine_update (
+void ibus_rustpinyin_engine_clear (
     IBusRustPinyinEngine *rustpinyin
 ) {
+
+    g_string_assign (rustpinyin->preedit, "");
+    rustpinyin->cursor_pos = 0;
+
+    g_string_assign (rustpinyin->precommit, "");
+    g_string_assign (rustpinyin->consumed, "");
+
+    ibus_rustpinyin_engine_update_auxilliary(rustpinyin);
     ibus_rustpinyin_engine_update_preedit (rustpinyin);
     ibus_engine_hide_lookup_table ((IBusEngine*) rustpinyin);
 }

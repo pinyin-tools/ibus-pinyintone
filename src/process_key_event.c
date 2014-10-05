@@ -23,7 +23,6 @@ gboolean ibus_rustpinyin_engine_process_key_event (
     guint keycode,
     guint modifiers
 ) {
-    IBusText *text;
     IBusRustPinyinEngine *rustpinyin = (IBusRustPinyinEngine *)engine;
 
     if (modifiers & IBUS_RELEASE_MASK) {
@@ -43,7 +42,7 @@ gboolean ibus_rustpinyin_engine_process_key_event (
 
     switch (keyval) {
     case IBUS_space:
-        return ibus_rustpinyin_engine_commit_candidate (rustpinyin);
+        return ibus_rustpinyin_engine_select_candidate (rustpinyin);
     case IBUS_Return:
         return ibus_rustpinyin_engine_commit_preedit (rustpinyin);
 
@@ -51,9 +50,7 @@ gboolean ibus_rustpinyin_engine_process_key_event (
         if (rustpinyin->preedit->len == 0)
             return FALSE;
 
-        g_string_assign (rustpinyin->preedit, "");
-        rustpinyin->cursor_pos = 0;
-        ibus_rustpinyin_engine_update (rustpinyin);
+        ibus_rustpinyin_engine_clear (rustpinyin);
         return TRUE;
 
     case IBUS_Left:
@@ -61,7 +58,7 @@ gboolean ibus_rustpinyin_engine_process_key_event (
             return FALSE;
         if (rustpinyin->cursor_pos > 0) {
             rustpinyin->cursor_pos --;
-            ibus_rustpinyin_engine_update (rustpinyin);
+            ibus_rustpinyin_engine_update_preedit (rustpinyin);
         }
         return TRUE;
 
@@ -70,7 +67,7 @@ gboolean ibus_rustpinyin_engine_process_key_event (
             return FALSE;
         if (rustpinyin->cursor_pos < rustpinyin->preedit->len) {
             rustpinyin->cursor_pos ++;
-            ibus_rustpinyin_engine_update (rustpinyin);
+            ibus_rustpinyin_engine_update_preedit (rustpinyin);
         }
         return TRUE;
 
@@ -102,6 +99,25 @@ gboolean ibus_rustpinyin_engine_process_key_event (
     case IBUS_BackSpace:
         if (rustpinyin->preedit->len == 0)
             return FALSE;
+
+        // in case we're in the middle of a piece by piece selection
+        // of a word, pressing backspace cancels the being-made candidate
+        // and put back the already consumed characters back in the preedit
+        // string
+        if (rustpinyin->consumed->len != 0) {
+            g_string_prepend(
+                rustpinyin->preedit,
+                rustpinyin->consumed->str
+            );
+            rustpinyin->cursor_pos += rustpinyin->consumed->len;
+
+            g_string_assign (rustpinyin->consumed, "");
+            g_string_assign (rustpinyin->precommit, "");
+            ibus_rustpinyin_engine_update_auxilliary(rustpinyin);
+            ibus_rustpinyin_engine_update_preedit(rustpinyin);
+            ibus_rustpinyin_engine_update_lookup_table (rustpinyin);
+            return TRUE;
+        }
         if (rustpinyin->cursor_pos > 0) {
             rustpinyin->cursor_pos --;
             g_string_erase (rustpinyin->preedit, rustpinyin->cursor_pos, 1);
@@ -115,7 +131,9 @@ gboolean ibus_rustpinyin_engine_process_key_event (
             return FALSE;
         if (rustpinyin->cursor_pos < rustpinyin->preedit->len) {
             g_string_erase (rustpinyin->preedit, rustpinyin->cursor_pos, 1);
-            ibus_rustpinyin_engine_update (rustpinyin);
+
+            ibus_rustpinyin_engine_update_preedit(rustpinyin);
+            ibus_rustpinyin_engine_update_lookup_table (rustpinyin);
         }
         return TRUE;
     }
