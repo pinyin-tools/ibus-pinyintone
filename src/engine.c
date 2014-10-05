@@ -333,6 +333,8 @@ void ibus_rustpinyin_engine_clear (
 
     ibus_rustpinyin_engine_update_auxilliary(rustpinyin);
     ibus_rustpinyin_engine_update_preedit (rustpinyin);
+    ibus_engine_hide_auxiliary_text ((IBusEngine*) rustpinyin);
+    ibus_engine_hide_preedit_text ((IBusEngine*) rustpinyin);
     ibus_engine_hide_lookup_table ((IBusEngine*) rustpinyin);
 }
 

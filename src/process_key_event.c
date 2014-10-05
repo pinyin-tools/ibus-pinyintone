@@ -97,8 +97,10 @@ gboolean ibus_rustpinyin_engine_process_key_event (
         return TRUE;
 
     case IBUS_BackSpace:
-        if (rustpinyin->preedit->len == 0)
+        if (rustpinyin->preedit->len == 0) {
+            ibus_engine_hide_preedit_text ((IBusEngine*) rustpinyin);
             return FALSE;
+        }
 
         // in case we're in the middle of a piece by piece selection
         // of a word, pressing backspace cancels the being-made candidate
@@ -127,8 +129,10 @@ gboolean ibus_rustpinyin_engine_process_key_event (
         return TRUE;
 
     case IBUS_Delete:
-        if (rustpinyin->preedit->len == 0)
+        if (rustpinyin->preedit->len == 0) {
+            ibus_engine_hide_preedit_text ((IBusEngine*) rustpinyin);
             return FALSE;
+        }
         if (rustpinyin->cursor_pos < rustpinyin->preedit->len) {
             g_string_erase (rustpinyin->preedit, rustpinyin->cursor_pos, 1);
 
