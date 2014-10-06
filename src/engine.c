@@ -88,8 +88,6 @@ void ibus_rustpinyin_engine_update_lookup_table (
     IBusRustPinyinEngine* rustpinyin
 ) {
 
-    gboolean retval;
-
     if (rustpinyin->preedit->len == 0) {
         ibus_engine_hide_lookup_table ((IBusEngine *) rustpinyin);
         return;
@@ -98,17 +96,20 @@ void ibus_rustpinyin_engine_update_lookup_table (
     ibus_lookup_table_clear (rustpinyin->table);
     
 
+    // we get the suggestions and the number of it
     void* suggestions = pinyin2suggestions_c(
         db,
         rustpinyin->preedit->str
     );
     unsigned n_sug = vec_string_size(suggestions);
 
+
     if (suggestions == NULL || n_sug == 0) {
         ibus_engine_hide_lookup_table ((IBusEngine *) rustpinyin);
         return;
     }
 
+    // we add the suggestions one by one in lookup table
     for (unsigned i = 0; i < n_sug; i++) {
         const gchar* value = vec_string_value_get(
             suggestions,
@@ -122,6 +123,7 @@ void ibus_rustpinyin_engine_update_lookup_table (
         vec_string_value_free(value);
     }
 
+    // once finished we refresh the UI
     ibus_engine_update_lookup_table (
         (IBusEngine*) rustpinyin,
         rustpinyin->table,
@@ -159,7 +161,6 @@ void ibus_rustpinyin_engine_update_preedit (
     IBusRustPinyinEngine *rustpinyin
 ) {
     IBusText *text;
-    gint retval;
 
     //mirror of preedit, only used for display purpose
     //in the interface, with modification (space, '|' cursor etc.)
@@ -258,6 +259,9 @@ gboolean ibus_rustpinyin_engine_select_candidate(
         ibus_text_get_text(candidate)
     );
 
+    // we decompose the preedit string into pinyin tokens
+    // e.g "ni3hao3aaaaa"  will return a vector of size 2
+    // made of  "ni3"  and "hao3"
     void* tokens = string_to_tokens_as_strings_c(
         rustpinyin->preedit->str
     );
@@ -303,6 +307,7 @@ gboolean ibus_rustpinyin_engine_select_candidate(
         return TRUE;
     }
 
+    // update UI
     ibus_rustpinyin_engine_update_auxilliary(rustpinyin);
     ibus_rustpinyin_engine_update_preedit (rustpinyin);
     ibus_rustpinyin_engine_update_lookup_table (rustpinyin);

@@ -139,6 +139,9 @@ gboolean ibus_rustpinyin_engine_process_key_event (
             ibus_rustpinyin_engine_update_lookup_table (rustpinyin);
             return TRUE;
         }
+        // if we're not in middle of a step by step mode, then backspace
+        // simply delete the character before the cursor and move the
+        // cursor backward (as in any input text)
         if (rustpinyin->cursor_pos > 0) {
             rustpinyin->cursor_pos --;
             g_string_erase (rustpinyin->preedit, rustpinyin->cursor_pos, 1);
@@ -161,6 +164,7 @@ gboolean ibus_rustpinyin_engine_process_key_event (
         return TRUE;
     }
 
+    // if a-zA-Z or 12345 we add it to the preedit string
     if (is_alpha (keyval) || is_tone(keyval)) {
         g_string_insert_c (
             rustpinyin->preedit,
