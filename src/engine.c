@@ -47,6 +47,9 @@ void ibus_rustpinyin_engine_init (IBusRustPinyinEngine *rustpinyin) {
     rustpinyin->direct_input = FALSE;
     rustpinyin->prev_key_pressed = IBUS_VoidSymbol;
 
+    rustpinyin->simple_quote_start = TRUE;
+    rustpinyin->double_quote_start = TRUE;
+
     rustpinyin->table = ibus_lookup_table_new (5, 0, TRUE, TRUE);
     g_object_ref_sink (rustpinyin->table);
 }

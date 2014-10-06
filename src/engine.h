@@ -26,6 +26,11 @@ struct _IBusRustPinyinEngine {
     // to direct input (but not limited to)
     guint prev_key_pressed;
 
+    // if the next quote that will be input will be a starting one or not
+    // as opening and closing quote looks different in Chinese
+    gboolean double_quote_start;
+    gboolean simple_quote_start;
+
     GString* precommit;
     // keep track of the consumed characters to be able to
     // put them back if needed (e.g if we press backspace)

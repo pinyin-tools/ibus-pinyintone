@@ -245,15 +245,14 @@ gboolean ibus_rustpinyin_engine_process_if_punctuation(
     case '>': PINYIN_COMMIT("》"); return TRUE;
     case '?': PINYIN_COMMIT("？"); return TRUE;
     // case '|':
-    //TODO handle these case, need to add a flag in rustpinyin
-    //case '\'':
-    //    PINYIN_COMMIT(m_quote ? "‘" : "’");
-    //    m_quote = !m_quote;
-    //    return TRUE;
-    //case '"':
-    //    PINYIN_COMMIT(m_double_quote ? "“" : "”");
-    //    m_double_quote = !m_double_quote;
-    //    return TRUE;
+    case '\'':
+        PINYIN_COMMIT(rustpinyin->simple_quote_start ? "‘" : "’");
+        rustpinyin->simple_quote_start = !rustpinyin->simple_quote_start;
+        return TRUE;
+    case '"':
+        PINYIN_COMMIT(rustpinyin->double_quote_start ? "“" : "”");
+        rustpinyin->double_quote_start = !rustpinyin->double_quote_start;
+        return TRUE;
     case '.':
         //TODO: handle this case, need to add a prev_committed_char or
         // related in rustpinyin
