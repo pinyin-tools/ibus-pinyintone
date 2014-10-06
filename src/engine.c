@@ -44,6 +44,9 @@ void ibus_rustpinyin_engine_init (IBusRustPinyinEngine *rustpinyin) {
     rustpinyin->consumed = g_string_new ("");
     rustpinyin->cursor_pos = 0;
 
+    rustpinyin->direct_input = FALSE;
+    rustpinyin->prev_key_pressed = IBUS_VoidSymbol;
+
     rustpinyin->table = ibus_lookup_table_new (5, 0, TRUE, TRUE);
     g_object_ref_sink (rustpinyin->table);
 }
@@ -327,6 +330,7 @@ void ibus_rustpinyin_engine_clear (
 
     g_string_assign (rustpinyin->preedit, "");
     rustpinyin->cursor_pos = 0;
+    rustpinyin->prev_key_pressed = IBUS_VoidSymbol;
 
     g_string_assign (rustpinyin->precommit, "");
     g_string_assign (rustpinyin->consumed, "");

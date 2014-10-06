@@ -26,6 +26,25 @@ gboolean ibus_rustpinyin_engine_process_key_event (
     IBusRustPinyinEngine *rustpinyin = (IBusRustPinyinEngine *)engine;
 
     if (modifiers & IBUS_RELEASE_MASK) {
+        // if we release shift (right or left), we switch between
+        // pinyin input and raw direct input
+        // we check for previous released character to avoid
+        // shift+other_letter to trigger the switch
+        if (
+            keyval == rustpinyin->prev_key_pressed &&
+            (keyval == IBUS_Shift_L || keyval == IBUS_Shift_R)
+        ) {
+            rustpinyin->direct_input = !rustpinyin->direct_input;
+            ibus_rustpinyin_engine_clear (rustpinyin);
+           return TRUE; 
+        }
+        return FALSE;
+    }
+
+    rustpinyin->prev_key_pressed = keyval;
+
+    // for direct input we simply do not treat anything
+    if (rustpinyin->direct_input == TRUE) {
         return FALSE;
     }
 

@@ -19,13 +19,13 @@ struct _IBusRustPinyinEngine {
     GString *preedit;
     gint cursor_pos;
 
-    // keep track of how many tokens have been already used in case of
-    // a commit in several step (e.g the user has entered "mei3guo2ren2"
-    // which is 3 tokens but have only chosen the chinese character for
-    // "mei3guo2", there's two tokens consumed
-    //guint consumed_tokens;
-    //
-    //
+    // are we in direct input (i.e what you type is directly send
+    // to the application)
+    gboolean direct_input;
+    // last key that has been pressed, used to know if we can switch
+    // to direct input (but not limited to)
+    guint prev_key_pressed;
+
     GString* precommit;
     // keep track of the consumed characters to be able to
     // put them back if needed (e.g if we press backspace)
