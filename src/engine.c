@@ -5,7 +5,7 @@
 #include <pinyinengine.h>
 #include "engine.h"
 #include "process_key_event.h"
-static void *db = NULL;
+#include "user_db.h"
 
 G_DEFINE_TYPE (
     IBusRustPinyinEngine,
@@ -34,10 +34,9 @@ static void ibus_rustpinyin_engine_class_init (IBusRustPinyinEngineClass *klass)
  *
  */
 void ibus_rustpinyin_engine_init (IBusRustPinyinEngine *rustpinyin) {
-
-    if (db == NULL) {
-        db =  db_new(PKGDATADIR"/data/filtered_db.csv");
-    }
+    // open the database if they are not yet open
+    open_main_db();
+    open_user_db();
 
     rustpinyin->precommit = g_string_new ("");
     rustpinyin->preedit = g_string_new ("");
@@ -79,6 +78,8 @@ void ibus_rustpinyin_engine_destroy (IBusRustPinyinEngine *rustpinyin)
         rustpinyin->consumed = NULL;
     }
 
+    dump_user_db();
+
     ((IBusObjectClass *) ibus_rustpinyin_engine_parent_class)->destroy(
         (IBusObject *)rustpinyin
     );
@@ -100,8 +101,7 @@ void ibus_rustpinyin_engine_update_lookup_table (
     
 
     // we get the suggestions and the number of it
-    void* suggestions = pinyin2suggestions_c(
-        db,
+    void* suggestions = main_db_get_suggestions_from_str(
         rustpinyin->preedit->str
     );
     unsigned n_sug = vec_string_size(suggestions);
@@ -306,7 +306,17 @@ gboolean ibus_rustpinyin_engine_select_candidate(
             rustpinyin,
             rustpinyin->precommit->str
         );
+
+        // we give a feed back to our internal database
+        // about the word we have chosen, so that it can
+        // update the frequency of this word etc.
+        rust_pinyin_update_db_with_word(
+            rustpinyin->consumed->str,
+            rustpinyin->precommit->str
+        );
+
         ibus_rustpinyin_engine_clear (rustpinyin);
+
         return TRUE;
     }
 
